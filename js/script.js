@@ -391,36 +391,36 @@ let initializePage = () => {
         $(this).attr("href", $(this).attr("href").replace("http://ownlyio.dev-marketplace.test/", url));
     });
 };
-let connectToMetamask = async () => {
-    if(!isConnectedToMetamask) {
-        if (window.ethereum) {
-            try {
-                ethereum.on('accountsChanged', (accounts) => {
-                    address = (accounts.length > 0) ? accounts[0] : false;
-
-                    updateConnectToWallet();
-                    initializePage();
-                });
-
-                ethereum.on('chainChanged', (_chainId) => window.location.reload());
-
-                web3Bsc = new Web3(ethereum);
-
-                initializeContracts();
-
-                return true;
-            } catch (error) {
-                $("#modal-no-metamask-installed").modal("show");
-                return false;
-            }
-        } else {
-            $("#modal-no-metamask-installed").modal("show");
-            return false;
-        }
-    } else {
-        return true;
-    }
-};
+// let connectToMetamask = async () => {
+//     if(!isConnectedToMetamask) {
+//         if (window.ethereum) {
+//             try {
+//                 ethereum.on('accountsChanged', (accounts) => {
+//                     address = (accounts.length > 0) ? accounts[0] : false;
+//
+//                     updateConnectToWallet();
+//                     initializePage();
+//                 });
+//
+//                 ethereum.on('chainChanged', (_chainId) => window.location.reload());
+//
+//                 web3Bsc = new Web3(ethereum);
+//
+//                 initializeContracts();
+//
+//                 return true;
+//             } catch (error) {
+//                 $("#modal-no-metamask-installed").modal("show");
+//                 return false;
+//             }
+//         } else {
+//             $("#modal-no-metamask-installed").modal("show");
+//             return false;
+//         }
+//     } else {
+//         return true;
+//     }
+// };
 let updateConnectToWallet = async () => {
     // let accounts = await web3Eth.eth.getAccounts();
     // address = (accounts.length > 0) ? accounts[0] : false;
@@ -435,7 +435,7 @@ let updateConnectToWallet = async () => {
     }
 
     if(address) {
-        $("#connect-to-metamask-container").addClass("d-none");
+        $("#connect-wallet-container").addClass("d-none");
 
         let accountAddress = $("#account-address");
 
@@ -477,7 +477,7 @@ let updateConnectToWallet = async () => {
         });
     } else {
         $("#account-address").addClass("d-none");
-        $("#connect-to-metamask-container").removeClass("d-none");
+        $("#connect-wallet-container").removeClass("d-none");
     }
 };
 let initializeWeb3 = async () => {
@@ -2003,8 +2003,8 @@ $(document).on("click", "#install-metamask", () => {
     $("#modal-no-metamask-installed").modal("hide");
 });
 
-$(document).on("click", "#connect-to-metamask", () => {
-    connectToMetamask();
+$(document).on("click", "#connect-wallet", async () => {
+    await connectWallet();
 });
 
 $(document).on("click", ".create-market-item-confirmation", function() {
@@ -2035,9 +2035,10 @@ $(document).on("click", "#approve", async function() {
 
     $("#modal-approve").modal("hide");
 
-    isConnectedToMetamask = await connectToMetamask();
-    if(isConnectedToMetamask) {
-        let _chainID = await web3Bsc.eth.getChainId();
+    // isConnectedToMetamask = await connectToMetamask();
+    await connectWallet();
+    if(provider) {
+        let _chainID = await web3.eth.getChainId();
 
         if(_chainID !== chainIDBsc) {
             $("#modal-wrong-network").modal("show");
@@ -2734,7 +2735,6 @@ let web3Modal
 // Chosen wallet provider given by the dialog window
 let provider;
 
-
 // Address of the selected account
 let selectedAccount;
 
@@ -2875,7 +2875,7 @@ async function refreshAccountData() {
 /**
  * Connect wallet button pressed.
  */
-async function onConnect() {
+async function connectWallet() {
 
     console.log("Opening a dialog", web3Modal);
     try {
@@ -2928,12 +2928,3 @@ async function onDisconnect() {
     document.querySelector("#prepare").style.display = "block";
     document.querySelector("#connected").style.display = "none";
 }
-
-
-/**
- * Main entry point.
- */
-window.addEventListener('load', async () => {
-    init();
-    document.querySelector("#btn-connect").addEventListener("click", onConnect);
-});
