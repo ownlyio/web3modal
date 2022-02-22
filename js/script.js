@@ -431,6 +431,7 @@ let updateConnectToWallet = async () => {
         try {
             // accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             // address = (accounts.length > 0) ? accounts[0] : false;
+            await connectWallet();
         } catch(e) {}
     }
 
@@ -2723,7 +2724,6 @@ let provider;
 // Address of the selected account
 let selectedAccount;
 
-
 /**
  * Setup the orchestra
  */
@@ -2773,7 +2773,6 @@ function init() {
 
     console.log("Web3Modal instance is", web3Modal);
 }
-
 
 /**
  * Kick in the UI action after Web3modal dialog has chosen a provider
@@ -2831,38 +2830,7 @@ async function fetchAccountData() {
     document.querySelector("#connected").style.display = "block";
 }
 
-
-
-/**
- * Fetch account data for UI when
- * - User switches accounts in wallet
- * - User switches networks in wallet
- * - User connects wallet initially
- */
-async function refreshAccountData() {
-
-    // If any current data is displayed when
-    // the user is switching acounts in the wallet
-    // immediate hide this data
-    document.querySelector("#connected").style.display = "none";
-    document.querySelector("#prepare").style.display = "block";
-
-    // Disable button while UI is loading.
-    // fetchAccountData() will take a while as it communicates
-    // with Ethereum node via JSON-RPC and loads chain data
-    // over an API call.
-    document.querySelector("#btn-connect").setAttribute("disabled", "disabled")
-    await fetchAccountData(provider);
-    document.querySelector("#btn-connect").removeAttribute("disabled")
-}
-
-
-/**
- * Connect wallet button pressed.
- */
 async function connectWallet() {
-
-    console.log("Opening a dialog", web3Modal);
     try {
         provider = await web3Modal.connect();
     } catch(e) {
@@ -2870,20 +2838,14 @@ async function connectWallet() {
         return;
     }
 
-    // Subscribe to accounts change
     provider.on("accountsChanged", (accounts) => {
-        fetchAccountData();
+        address = (accounts.length > 0) ? accounts[0] : false;
+
+        updateConnectToWallet();
+        initializePage();
     });
 
-    // Subscribe to chainId change
-    provider.on("chainChanged", (chainId) => {
-        fetchAccountData();
-    });
+    provider.on("chainChanged", (_chainId) => window.location.reload());
 
-    // Subscribe to networkId change
-    provider.on("networkChanged", (networkId) => {
-        fetchAccountData();
-    });
-
-    await refreshAccountData();
+    updateConnectToWallet();
 }
