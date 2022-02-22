@@ -1969,6 +1969,36 @@ let getFilteredTokensByProperties = function() {
     $("#tokens-container").html(tokensContainerInitialContent);
     displayTokens(network, 0, "all", collection, filters, page);
 };
+let connectToWalletToProceedTransaction = async function(chainID) {
+    await connectWallet();
+    if(provider) {
+        web3 = new Web3(provider);
+        let _chainID = await web3.eth.getChainId();
+
+        if(_chainID !== chainID) {
+            let message = '';
+
+            if(chainID === 1 || chainID === 4) {
+                message = 'You are currently on the wrong network. Please connect to Ethereum Mainnet';
+            } else if(chainID === 56 || chainID === 97) {
+                message = 'You are currently on the wrong network. Please connect to Binance Smart Chain';
+            } else if(chainID === 137 || chainID === 80001) {
+                message = 'You are currently on the wrong network. Please connect to Polygon Network';
+            }
+
+            $("#modal-transfer-token").modal("hide");
+
+            $("#modal-wrong-network-2 .message").text(message);
+            $("#modal-wrong-network-2").modal("show");
+
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    return true;
+};
 
 let test = function() {
     let web3test = new Web3("https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161");
@@ -2036,17 +2066,8 @@ $(document).on("click", "#approve", async function() {
 
     $("#modal-approve").modal("hide");
 
-    // isConnectedToMetamask = await connectToMetamask();
-    await connectWallet();
-    if(provider) {
-        let _chainID = await web3.eth.getChainId();
-
-        if(_chainID !== chainIDBsc) {
-            $("#modal-wrong-network").modal("show");
-            return 0;
-        }
-    } else {
-        return 0;
+    if(!await connectToWalletToProceedTransaction(chainIDBsc)) {
+        return false;
     }
 
     titansContract.methods.setApprovalForAll(marketplaceBinanceContractAddress, true)
@@ -2073,16 +2094,8 @@ $(document).on("click", "#create-market-item", async function() {
     if(price > 0) {
         $("#modal-create-market-item").modal("hide");
 
-        isConnectedToMetamask = await connectToMetamask();
-        if(isConnectedToMetamask) {
-            let _chainID = await web3Bsc.eth.getChainId();
-
-            if(_chainID !== chainIDBsc) {
-                $("#modal-wrong-network").modal("show");
-                return 0;
-            }
-        } else {
-            return 0;
+        if(!await connectToWalletToProceedTransaction(chainIDBsc)) {
+            return false;
         }
 
         marketplaceBinanceContract.methods.createMarketItem(titansContractAddress, $(this).val(), web3Bsc.utils.toWei(price, 'ether'), $("#price-currency").val())
@@ -2117,16 +2130,8 @@ $(document).on("click", ".cancel-market-item-confirmation", function() {
 $(document).on("click", "#cancel-market-item", async function() {
     $("#modal-cancel-market-item").modal("hide");
 
-    isConnectedToMetamask = await connectToMetamask();
-    if(isConnectedToMetamask) {
-        let _chainID = await web3Bsc.eth.getChainId();
-
-        if(_chainID !== chainIDBsc) {
-            $("#modal-wrong-network").modal("show");
-            return 0;
-        }
-    } else {
-        return 0;
+    if(!await connectToWalletToProceedTransaction(chainIDBsc)) {
+        return false;
     }
 
     marketplaceBinanceContract.methods.cancelMarketItem($(this).val())
@@ -2177,16 +2182,8 @@ $(document).on("click", ".create-market-sale", function() {
             let selectedCurrency = $("input[name='buy_through_token']:checked").val();
 
             let createMarketSaleFunction = async function(_price) {
-                isConnectedToMetamask = await connectToMetamask();
-                if(isConnectedToMetamask) {
-                    let _chainID = await web3Bsc.eth.getChainId();
-
-                    if(_chainID !== chainIDBsc) {
-                        $("#modal-wrong-network").modal("show");
-                        return 0;
-                    }
-                } else {
-                    return 0;
+                if(!await connectToWalletToProceedTransaction(chainIDBsc)) {
+                    return false;
                 }
 
                 marketplaceBinanceContract.methods.createMarketSale(item_id, selectedCurrency)
@@ -2210,16 +2207,8 @@ $(document).on("click", ".create-market-sale", function() {
                 ownContract.methods.allowance(address, marketplaceBinanceContractAddress).call()
                     .then(async function(allowance) {
                         if(allowance !== price) {
-                            isConnectedToMetamask = await connectToMetamask();
-                            if(isConnectedToMetamask) {
-                                let _chainID = await web3Bsc.eth.getChainId();
-
-                                if(_chainID !== chainIDBsc) {
-                                    $("#modal-wrong-network").modal("show");
-                                    return 0;
-                                }
-                            } else {
-                                return 0;
+                            if(!await connectToWalletToProceedTransaction(chainIDBsc)) {
+                                return false;
                             }
 
                             ownContract.methods.approve(marketplaceBinanceContractAddress, price)
@@ -2247,16 +2236,8 @@ $(document).on("click", ".create-market-sale", function() {
                         let priceWithSlippage = (BigInt($("#discounted-own-price").attr("data-price")) * BigInt(100001) / BigInt(100000)).toString();
 
                         if(allowance < priceWithSlippage) {
-                            isConnectedToMetamask = await connectToMetamask();
-                            if(isConnectedToMetamask) {
-                                let _chainID = await web3Bsc.eth.getChainId();
-
-                                if(_chainID !== chainIDBsc) {
-                                    $("#modal-wrong-network").modal("show");
-                                    return 0;
-                                }
-                            } else {
-                                return 0;
+                            if(!await connectToWalletToProceedTransaction(chainIDBsc)) {
+                                return false;
                             }
 
                             ownContract.methods.approve(marketplaceBinanceContractAddress, priceWithSlippage)
@@ -2463,6 +2444,9 @@ $(document).on("click", "#transfer-token", async function() {
     let tokenId = transferTokenShowModal.attr("data-token-id");
     let tokenChainId = parseInt(transferTokenShowModal.attr("data-chain-id"));
 
+    if(!await connectToWalletToProceedTransaction(tokenChainId)) {
+        return false;
+    }
     isConnectedToMetamask = await connectToMetamask();
     if(isConnectedToMetamask) {
         let _chainID = await web3Bsc.eth.getChainId();
