@@ -2832,10 +2832,10 @@ async function fetchAccountData() {
 
 async function connectWallet() {
     try {
-        if(window.ethereum) {
+        if(!window.ethereum) {
             provider = await web3Modal.connect();
         } else {
-            provider = ethereum;
+            provider = window.ethereum;
         }
     } catch(e) {
         console.log("Could not get a wallet connection", e);
