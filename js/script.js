@@ -2835,7 +2835,7 @@ async function connectWallet() {
         if(window.ethereum) {
             provider = await web3Modal.connect();
         } else {
-            provider = etheruem;
+            provider = ethereum;
         }
     } catch(e) {
         console.log("Could not get a wallet connection", e);
