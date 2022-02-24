@@ -2851,4 +2851,6 @@ async function connectWallet() {
     });
 
     provider.on("chainChanged", (_chainId) => window.location.reload());
+
+    updateConnectToWallet();
 }
