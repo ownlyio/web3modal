@@ -432,6 +432,8 @@ let updateConnectToWallet = async () => {
             // accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             // address = (accounts.length > 0) ? accounts[0] : false;
             await connectWallet();
+            const accounts = await web3.eth.getAccounts();
+            address = accounts[0];
         } catch(e) {}
     }
 
@@ -2831,6 +2833,7 @@ async function fetchAccountData() {
 }
 
 async function connectWallet() {
+    console.log("Connect Wallet");
     try {
         if(!window.ethereum) {
             provider = await web3Modal.connect();
@@ -2843,13 +2846,9 @@ async function connectWallet() {
     }
 
     provider.on("accountsChanged", (accounts) => {
-        address = (accounts.length > 0) ? accounts[0] : false;
-
         updateConnectToWallet();
         initializePage();
     });
 
     provider.on("chainChanged", (_chainId) => window.location.reload());
-
-    updateConnectToWallet();
 }
