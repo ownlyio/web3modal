@@ -35,10 +35,10 @@ function init() {
   // as otherwise MetaMask won't be available
   if(location.protocol !== 'https:') {
     // https://ethereum.stackexchange.com/a/62217/620
-    const alert = document.querySelector("#alert-error-https");
-    alert.style.display = "block";
-    document.querySelector("#btn-connect").setAttribute("disabled", "disabled")
-    return;
+    // const alert = document.querySelector("#alert-error-https");
+    // alert.style.display = "block";
+    // document.querySelector("#btn-connect").setAttribute("disabled", "disabled")
+    // return;
   }
 
   // Tell Web3modal what providers we have available.
@@ -49,7 +49,11 @@ function init() {
       package: WalletConnectProvider,
       options: {
         // Mikko's test key - don't copy as your mileage may vary
-        infuraId: "8043bb2cf99347b1bfadfb233c5325c0",
+        infuraId: "8f48278aed3147e1b94cc7d3040738c4",
+        // rpc: {
+        //   56: 'https://bsc-dataseed1.binance.org'
+        // },
+        // chainId: 56
       }
     },
 
@@ -157,11 +161,16 @@ async function refreshAccountData() {
 /**
  * Connect wallet button pressed.
  */
+
 async function onConnect() {
 
   console.log("Opening a dialog", web3Modal);
   try {
-    provider = await web3Modal.connect();
+    // if(window.ethereum) {
+    //   provider = window.ethereum;
+    // } else {
+      provider = await web3Modal.connect();
+    // }
   } catch(e) {
     console.log("Could not get a wallet connection", e);
     return;
@@ -219,4 +228,6 @@ window.addEventListener('load', async () => {
   init();
   document.querySelector("#btn-connect").addEventListener("click", onConnect);
   document.querySelector("#btn-disconnect").addEventListener("click", onDisconnect);
+
+  await onConnect();
 });
