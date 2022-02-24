@@ -434,6 +434,7 @@ let updateConnectToWallet = async () => {
             await connectWallet();
             const accounts = await web3.eth.getAccounts();
             address = accounts[0];
+            console.log(address);
         } catch(e) {}
     }
 
@@ -2851,6 +2852,4 @@ async function connectWallet() {
     });
 
     provider.on("chainChanged", (_chainId) => window.location.reload());
-
-    updateConnectToWallet();
 }
